@@ -7,14 +7,13 @@ const {
   COOLDOWN_MS,
 } = require('./gridStore');
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 const wss = new WebSocketServer({ port: PORT });
 
 // Map<userId, { ws, name, color, id }>
 const users = new Map();
 
 // Helpers 
-
 function send(ws, msg) {
   if (ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(msg));
@@ -41,7 +40,6 @@ function getOnlineUsers() {
 }
 
 // Connection handler
-
 wss.on('connection', (ws) => {
   let userId = null;
 
@@ -56,14 +54,22 @@ wss.on('connection', (ws) => {
       return;
     }
 
-    // JOIN
+    // JOIN 
     if (msg.type === 'join') {
-      if (userId) return; // already joined
+      // If already joined on this socket, clean up old identity first
+      if (userId && users.has(userId)) {
+        users.delete(userId);
+        broadcast({ type: 'user_left', userId }, ws);
+      }
 
       const name = String(msg.name || 'Anonymous').slice(0, 20).trim() || 'Anonymous';
       const color = /^#[0-9a-fA-F]{6}$/.test(msg.color) ? msg.color : '#06d6a0';
 
-      userId = uuidv4();
+      // Recover session or create new
+      userId = (msg.userId && typeof msg.userId === 'string' && msg.userId.length > 10) 
+        ? msg.userId 
+        : uuidv4();
+      
       users.set(userId, { ws, name, color, id: userId });
 
       // Send full state to the new client
@@ -72,6 +78,7 @@ wss.on('connection', (ws) => {
         userId,
         grid: getGrid(),
         users: getOnlineUsers(),
+        leaderboard: getLeaderboard(),
         cooldownMs: COOLDOWN_MS,
       });
 
@@ -93,7 +100,7 @@ wss.on('connection', (ws) => {
 
     const user = users.get(userId);
 
-    // CLAIM 
+    // CLAIM
     if (msg.type === 'claim') {
       const result = claimCell(msg.cellId, userId, user.name, user.color);
 
@@ -115,7 +122,7 @@ wss.on('connection', (ws) => {
         name: user.name,
         color: user.color,
         ts: result.cell.ts,
-        leaderboard: getLeaderboard(users),
+        leaderboard: getLeaderboard(),
       };
 
       broadcastAll(payload);
@@ -124,7 +131,16 @@ wss.on('connection', (ws) => {
       return;
     }
 
-    // PING (keepalive) 
+    // MOVE (cursor presence)
+    if (msg.type === 'move') {
+      broadcast(
+        { type: 'user_moved', userId, x: msg.x, y: msg.y },
+        ws
+      );
+      return;
+    }
+
+    // PING (keepalive)
     if (msg.type === 'ping') {
       send(ws, { type: 'pong' });
       return;
@@ -133,7 +149,7 @@ wss.on('connection', (ws) => {
     send(ws, { type: 'error', message: `Unknown type: ${msg.type}` });
   });
 
-  // Disconnect 
+  // Disconnect
   ws.on('close', () => {
     if (userId && users.has(userId)) {
       const user = users.get(userId);
