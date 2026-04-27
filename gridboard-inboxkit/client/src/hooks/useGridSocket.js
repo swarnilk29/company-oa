@@ -1,6 +1,14 @@
+/*
+ - Manages the WebSocket connection lifecycle and all message handling.
+ - The rest of the app is just UI — real-time logic is entirely here.
+
+ - Reconnection: exponential backoff up to 30s.
+ - Keepalive: ping every 25s to prevent proxy timeouts.
+ */
+
 import { useEffect, useRef, useCallback, useState } from 'react';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:4000';
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000';
 const RECONNECT_BASE = 1000;
 const RECONNECT_MAX = 30000;
 const PING_INTERVAL = 25000;
@@ -23,6 +31,7 @@ export function useGridSocket({ onMessage, onStatusChange }) {
       reconnectDelay.current = RECONNECT_BASE;
       onStatusChange('connected');
 
+      // Keepalive
       pingTimer.current = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: 'ping' }));
@@ -44,6 +53,7 @@ export function useGridSocket({ onMessage, onStatusChange }) {
       if (!isMounted.current) return;
       onStatusChange('disconnected');
 
+      // Exponential backoff reconnect
       reconnectTimer.current = setTimeout(() => {
         reconnectDelay.current = Math.min(reconnectDelay.current * 2, RECONNECT_MAX);
         connect();
