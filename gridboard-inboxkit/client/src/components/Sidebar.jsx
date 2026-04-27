@@ -1,20 +1,18 @@
-import clsx from "clsx";
-import { TOTAL } from "../lib/constants";
+import clsx from 'clsx';
+import { TOTAL } from '../lib/constants';
 
 function Section({ title, children }) {
   return (
     <div className="border-b border-[#1e2736] last:border-0">
       <div className="px-4 pt-4 pb-3">
-        <p className="text-[10px] tracking-widest text-slate-600 uppercase mb-3">
-          {title}
-        </p>
+        <p className="text-[10px] tracking-widest text-slate-600 uppercase mb-3">{title}</p>
         {children}
       </div>
     </div>
   );
 }
 
-// Cooldown bar 
+// Cooldown bar
 function CooldownBar({ cooldownUntil, cooldownMs }) {
   const now = Date.now();
   const remaining = Math.max(0, cooldownUntil - now);
@@ -24,23 +22,16 @@ function CooldownBar({ cooldownUntil, cooldownMs }) {
   return (
     <div>
       <div className="flex justify-between text-[10px] mb-1.5">
-        <span className="text-slate-600 tracking-wider uppercase">
-          Cooldown
-        </span>
-        <span
-          className={clsx(
-            "font-mono",
-            ready ? "text-emerald-400" : "text-amber-400",
-          )}
-        >
-          {ready ? "Ready" : `${(remaining / 1000).toFixed(1)}s`}
+        <span className="text-slate-600 tracking-wider uppercase">Cooldown</span>
+        <span className={clsx('font-mono', ready ? 'text-emerald-400' : 'text-amber-400')}>
+          {ready ? 'Ready' : `${(remaining / 1000).toFixed(1)}s`}
         </span>
       </div>
       <div className="h-1 bg-[#1e2736] rounded-full overflow-hidden">
         <div
           className={clsx(
-            "h-full rounded-full transition-all duration-100",
-            ready ? "bg-emerald-400" : "bg-amber-400",
+            'h-full rounded-full transition-all duration-100',
+            ready ? 'bg-emerald-400' : 'bg-amber-400'
           )}
           style={{ width: `${pct}%` }}
         />
@@ -49,32 +40,38 @@ function CooldownBar({ cooldownUntil, cooldownMs }) {
   );
 }
 
-// Profile block 
-function MyProfile({ user, myCellCount, cooldownUntil, cooldownMs }) {
+// Profile block
+function MyProfile({ user, myCellCount, cooldownUntil, cooldownMs, onLogout }) {
   return (
     <Section title="You">
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-4">
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center
-                     text-xs font-display font-bold text-black flex-shrink-0"
+                     text-sm font-semibold text-black flex-shrink-0"
           style={{ background: user.color }}
         >
           {user.name[0].toUpperCase()}
         </div>
-        <div>
-          <div
-            className="text-sm text-white font-medium"
-            style={{ color: user.color }}
-          >
+        <div className="flex-1 min-w-0">
+          <div className="text-sm text-white font-medium truncate" style={{ color: user.color }}>
             {user.name}
           </div>
           <div className="text-xs text-slate-600">
-            {myCellCount} {myCellCount === 1 ? "cell" : "cells"} ·{" "}
+            {myCellCount} {myCellCount === 1 ? 'cell' : 'cells'} ·{' '}
             {TOTAL > 0 ? ((myCellCount / TOTAL) * 100).toFixed(1) : 0}%
           </div>
         </div>
       </div>
       <CooldownBar cooldownUntil={cooldownUntil} cooldownMs={cooldownMs} />
+      
+      <button 
+        onClick={onLogout}
+        className="mt-4 w-full py-1.5 px-2 rounded border border-[#1e2736] 
+                   text-[9px] text-slate-500 hover:text-slate-300 hover:bg-white/5 
+                   transition-all uppercase tracking-widest font-medium"
+      >
+        Logout / Switch
+      </button>
     </Section>
   );
 }
@@ -95,32 +92,25 @@ function Leaderboard({ leaderboard, myUserId }) {
               <div
                 key={u.userId}
                 className={clsx(
-                  "flex items-center gap-2 rounded-md px-2 py-1 -mx-2 transition-colors",
-                  isMe ? "bg-white/5" : "",
+                  'flex items-center gap-2 rounded-md px-2 py-1 -mx-2 transition-colors',
+                  isMe ? 'bg-white/5' : ''
                 )}
               >
                 <span className="text-[10px] text-slate-600 w-4 text-right flex-shrink-0">
-                  {i === 0 ? "①" : i === 1 ? "②" : i === 2 ? "③" : i + 1}
+                  {i === 0 ? '①' : i === 1 ? '②' : i === 2 ? '③' : i + 1}
                 </span>
                 <div
                   className="w-2 h-2 rounded-full flex-shrink-0"
                   style={{ background: u.color }}
                 />
-                <span
-                  className="text-xs flex-1 truncate"
-                  style={{ color: isMe ? u.color : "#94a3b8" }}
-                >
+                <span className="text-xs flex-1 truncate" style={{ color: isMe ? u.color : '#94a3b8' }}>
                   {u.name}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <div className="w-12 h-1 bg-[#1e2736] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full"
-                      style={{
-                        width: `${(u.count / max) * 100}%`,
-                        background: u.color,
-                        opacity: 0.7,
-                      }}
+                      style={{ width: `${(u.count / max) * 100}%`, background: u.color, opacity: 0.7 }}
                     />
                   </div>
                   <span className="text-[10px] font-mono text-slate-500 w-5 text-right">
@@ -141,17 +131,15 @@ function OnlineUsers({ users, myUserId }) {
   return (
     <Section title={`Online — ${users.length}`}>
       <div className="flex flex-wrap gap-1.5">
-        {users.map((u) => (
+        {users.map(u => (
           <div
             key={u.id}
             title={u.name}
             className={clsx(
-              "w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold",
-              u.id === myUserId
-                ? "ring-2 ring-white/40 ring-offset-1 ring-offset-[#0d1117]"
-                : "",
+              'w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold',
+              u.id === myUserId ? 'ring-2 ring-white/40 ring-offset-1 ring-offset-[#0d1117]' : ''
             )}
-            style={{ background: u.color, color: "rgba(0,0,0,0.7)" }}
+            style={{ background: u.color, color: 'rgba(0,0,0,0.7)' }}
           >
             {u.name[0].toUpperCase()}
           </div>
@@ -173,31 +161,12 @@ function ActivityFeed({ events }) {
             const age = Math.round((Date.now() - ev.ts) / 1000);
             const ageStr = age < 60 ? `${age}s` : `${Math.floor(age / 60)}m`;
             return (
-              <div
-                key={i}
-                className="text-[11px] text-slate-500 animate-slide-in leading-relaxed"
-              >
-                <span style={{ color: ev.color }} className="font-medium">
-                  {ev.name}
-                </span>
-                {ev.prev ? (
-                  <>
-                    {" "}
-                    took{" "}
-                    <span className="text-slate-400">
-                      [{ev.col},{ev.row}]
-                    </span>{" "}
-                    from <span style={{ color: ev.prevColor }}>{ev.prev}</span>
-                  </>
-                ) : (
-                  <>
-                    {" "}
-                    claimed{" "}
-                    <span className="text-slate-400">
-                      [{ev.col},{ev.row}]
-                    </span>
-                  </>
-                )}
+              <div key={i} className="text-[11px] text-slate-500 animate-slide-in leading-relaxed">
+                <span style={{ color: ev.color }} className="font-medium">{ev.name}</span>
+                {ev.prev
+                  ? <> took <span className="text-slate-400">[{ev.col},{ev.row}]</span> from <span style={{ color: ev.prevColor }}>{ev.prev}</span></>
+                  : <> claimed <span className="text-slate-400">[{ev.col},{ev.row}]</span></>
+                }
                 <span className="text-slate-700 ml-1">{ageStr}</span>
               </div>
             );
@@ -208,14 +177,14 @@ function ActivityFeed({ events }) {
   );
 }
 
-// Territory bar 
+// Territory bar
 function TerritoryBar({ leaderboard }) {
   const claimed = leaderboard.reduce((s, u) => s + u.count, 0);
   const unclaimed = TOTAL - claimed;
 
   return (
     <div className="h-1.5 flex w-full overflow-hidden">
-      {leaderboard.map((u) => (
+      {leaderboard.map(u => (
         <div
           key={u.userId}
           style={{ width: `${(u.count / TOTAL) * 100}%`, background: u.color }}
@@ -230,22 +199,14 @@ function TerritoryBar({ leaderboard }) {
   );
 }
 
-// Main Sidebar export 
+// Main Sidebar export
 export default function Sidebar({
-  user,
-  myCellCount,
-  cooldownUntil,
-  cooldownMs,
-  leaderboard,
-  onlineUsers,
-  myUserId,
-  events,
+  user, myCellCount, cooldownUntil, cooldownMs,
+  leaderboard, onlineUsers, myUserId, events, onLogout,
 }) {
   return (
-    <aside
-      className="w-56 flex-shrink-0 bg-[#0d1117] border-l border-[#1e2736]
-                      flex flex-col overflow-hidden"
-    >
+    <aside className="w-56 shrink-0 bg-[#0d1117] border-l border-[#1e2736]
+                      flex flex-col overflow-hidden">
       <TerritoryBar leaderboard={leaderboard} />
       <div className="flex-1 overflow-y-auto">
         {user && (
@@ -254,6 +215,7 @@ export default function Sidebar({
             myCellCount={myCellCount}
             cooldownUntil={cooldownUntil}
             cooldownMs={cooldownMs}
+            onLogout={onLogout}
           />
         )}
         <Leaderboard leaderboard={leaderboard} myUserId={myUserId} />

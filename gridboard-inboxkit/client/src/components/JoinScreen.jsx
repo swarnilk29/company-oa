@@ -1,12 +1,10 @@
-import { useState } from "react";
-import { USER_COLORS, randomHandle } from "../lib/constants";
-import clsx from "clsx";
+import { useState } from 'react';
+import { USER_COLORS, randomHandle } from '../lib/constants';
+import clsx from 'clsx';
 
 export default function JoinScreen({ onJoin, status }) {
-  const [name, setName] = useState("");
-  const [color, setColor] = useState(
-    USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)],
-  );
+  const [name, setName] = useState('');
+  const [color, setColor] = useState(USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)]);
   const placeholder = useState(randomHandle)[0];
 
   const handleJoin = () => {
@@ -14,7 +12,7 @@ export default function JoinScreen({ onJoin, status }) {
     onJoin(finalName, color);
   };
 
-  const isConnected = status === "connected";
+  const isConnected = status === 'connected';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0c10]">
@@ -35,7 +33,7 @@ export default function JoinScreen({ onJoin, status }) {
       <div className="relative w-full max-w-sm mx-4 animate-fade-up">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-extrabold text-white tracking-tight mb-1">
+          <h1 className="font-display text-4xl font-extrabold text-white tracking-tight mb-1">
             GridBoard
           </h1>
           <p className="text-sm text-slate-500 font-mono">
@@ -45,6 +43,7 @@ export default function JoinScreen({ onJoin, status }) {
 
         {/* Card */}
         <div className="bg-[#111520] border border-[#1e2736] rounded-xl p-6 space-y-5">
+
           {/* Name */}
           <div>
             <label className="block text-xs text-slate-500 mb-2 tracking-widest uppercase">
@@ -53,10 +52,8 @@ export default function JoinScreen({ onJoin, status }) {
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) =>
-                e.key === "Enter" && isConnected && handleJoin()
-              }
+              onChange={e => setName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && isConnected && handleJoin()}
               placeholder={placeholder}
               maxLength={20}
               className="w-full bg-[#0d1117] border border-[#1e2736] rounded-lg px-4 py-2.5
@@ -72,15 +69,15 @@ export default function JoinScreen({ onJoin, status }) {
               Your color
             </label>
             <div className="flex gap-2.5 flex-wrap">
-              {USER_COLORS.map((c) => (
+              {USER_COLORS.map(c => (
                 <button
                   key={c}
                   onClick={() => setColor(c)}
                   className={clsx(
-                    "w-7 h-7 rounded-full transition-all duration-150",
+                    'w-7 h-7 rounded-full transition-all duration-150',
                     color === c
-                      ? "ring-2 ring-white ring-offset-2 ring-offset-[#111520] scale-110"
-                      : "hover:scale-110 opacity-70 hover:opacity-100",
+                      ? 'ring-2 ring-white ring-offset-2 ring-offset-[#111520] scale-110'
+                      : 'hover:scale-110 opacity-70 hover:opacity-100'
                   )}
                   style={{ background: c }}
                 />
@@ -92,16 +89,16 @@ export default function JoinScreen({ onJoin, status }) {
           <div className="flex items-center gap-2 text-xs text-slate-600">
             <span
               className={clsx(
-                "w-1.5 h-1.5 rounded-full",
-                status === "connected" && "bg-emerald-400 animate-pulse-soft",
-                status === "connecting" && "bg-amber-400 animate-pulse-soft",
-                status === "disconnected" && "bg-red-500",
+                'w-1.5 h-1.5 rounded-full',
+                status === 'connected'    && 'bg-emerald-400 animate-pulse-soft',
+                status === 'connecting'   && 'bg-amber-400 animate-pulse-soft',
+                status === 'disconnected' && 'bg-red-500',
               )}
             />
             <span>
-              {status === "connected" && "Connected to server"}
-              {status === "connecting" && "Connecting..."}
-              {status === "disconnected" && "Server unreachable — retrying"}
+              {status === 'connected'    && 'Connected to server'}
+              {status === 'connecting'   && 'Connecting...'}
+              {status === 'disconnected' && 'Server unreachable — retrying'}
             </span>
           </div>
 
@@ -110,10 +107,10 @@ export default function JoinScreen({ onJoin, status }) {
             onClick={handleJoin}
             disabled={!isConnected}
             className={clsx(
-              "w-full rounded-lg py-2.5 text-sm font-display font-semibold tracking-wide transition-all duration-150",
+              'w-full rounded-lg py-2.5 text-sm font-display font-semibold tracking-wide transition-all duration-150',
               isConnected
-                ? "bg-white text-[#0a0c10] hover:bg-slate-100 active:scale-[0.98]"
-                : "bg-[#1e2736] text-slate-600 cursor-not-allowed",
+                ? 'bg-white text-[#0a0c10] hover:bg-slate-100 active:scale-[0.98]'
+                : 'bg-[#1e2736] text-slate-600 cursor-not-allowed'
             )}
           >
             Enter the grid
