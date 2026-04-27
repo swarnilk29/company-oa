@@ -5,7 +5,7 @@ import { COLS, ROWS, TOTAL } from '../lib/constants';
 const CELL_SIZE = 26; // px
 const GAP = 2;        // px
 
-export default function Grid({ gridState, myUserId, onClaim, cooldownUntil, flashSet }) {
+export default function Grid({ gridState, myUserId, onClaim, onMove, cooldownUntil, flashSet, remoteCursors, onlineUsers }) {
   const containerRef = useRef(null);
 
   // Zoom / pan state
@@ -16,6 +16,25 @@ export default function Grid({ gridState, myUserId, onClaim, cooldownUntil, flas
 
   // Tooltip
   const [tooltip, setTooltip] = useState(null); // { x, y, cellId }
+
+  // Presence
+  const lastSent = useRef(0);
+  const handleMouseMovePresence = useCallback((e) => {
+    if (!onMove) return;
+    const now = Date.now();
+    if (now - lastSent.current < 100) return; // 100ms throttle
+    lastSent.current = now;
+
+    const canvas = e.currentTarget.querySelector('.grid-canvas');
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    
+    // Normalize coordinates so they work across all scales/pans
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
+
+    onMove(x, y);
+  }, [onMove, scale]);
 
   // Zoom 
   useEffect(() => {
@@ -31,7 +50,7 @@ export default function Grid({ gridState, myUserId, onClaim, cooldownUntil, flas
     return () => el.removeEventListener('wheel', onWheel);
   }, []);
 
-  // Pan 
+  // Pan
   const onMouseDown = useCallback((e) => {
     if (e.target.classList.contains('cell')) return;
     dragStart.current = { x: e.clientX, y: e.clientY };
@@ -39,16 +58,18 @@ export default function Grid({ gridState, myUserId, onClaim, cooldownUntil, flas
   }, [offset]);
 
   const onMouseMove = useCallback((e) => {
+    handleMouseMovePresence(e); // presence
+
     if (!dragStart.current) return;
     setOffset({
       x: dragOffset.current.x + e.clientX - dragStart.current.x,
       y: dragOffset.current.y + e.clientY - dragStart.current.y,
     });
-  }, []);
+  }, [handleMouseMovePresence]);
 
   const onMouseUp = useCallback(() => { dragStart.current = null; }, []);
 
-  // Cell interaction 
+  // Cell interaction
   const handleCellClick = useCallback((cellId) => {
     onClaim(cellId);
   }, [onClaim]);
@@ -101,6 +122,24 @@ export default function Grid({ gridState, myUserId, onClaim, cooldownUntil, flas
         className="grid-canvas select-none"
         style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }}
       >
+        {/* Remote cursors */}
+        {Object.entries(remoteCursors).map(([uid, pos]) => {
+          const user = onlineUsers.find(u => u.id === uid);
+          if (!user) return null;
+          return (
+            <div
+              key={uid}
+              className="absolute pointer-events-none z-30 transition-all duration-100 ease-out"
+              style={{ left: pos.x, top: pos.y, transform: 'translate(-50%, -50%)' }}
+            >
+              <div className="w-3 h-3 rounded-full border-2 border-white shadow-lg" style={{ background: user.color }} />
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-[#111520]/80 border border-white/10 text-[9px] font-mono whitespace-nowrap text-white">
+                {user.name}
+              </div>
+            </div>
+          );
+        })}
+
         <div
           className="grid-cells p-0.5 bg-[#0d1117] rounded-lg border border-[#1e2736]"
           style={{ cursor: onCooldown ? 'not-allowed' : 'crosshair' }}
